@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  accounts  Account[]
+}
+
+model Account {
+  id         String   @id @default(cuid())
+  ownerId    String
+  owner      User     @relation(fields: [ownerId], references: [id])
+
+  // snapshot de balance (o saldo "rápido")
+  balanceCents BigInt  @default(0)
+  currency     String  @default("BRL")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  entries     LedgerEntry[]
+}
+
+model Transfer {
+  id               String   @id @default(cuid())
+  fromAccountId    String
+  toAccountId      String
+  amountCents      BigInt
+  currency         String   @default("BRL")
+
+  status           TransferStatus @default(PENDING)
+  idempotencyKey   String?
+  requestHash      String?
+  attempts         Int      @default(0)
+  lastError        String?
+  nextAttemptAt    DateTime @default(now())
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([fromAccountId])
+  @@index([toAccountId])
+}
+
+model LedgerEntry {
+  id           String   @id @default(cuid())
+  accountId    String
+  account      Account  @relation(fields: [accountId], references: [id])
+
+  transferId   String?
+  direction    LedgerDirection
+  amountCents  BigInt
+  currency     String  @default("BRL")
+
+  createdAt    DateTime @default(now())
+
+  @@index([accountId, createdAt])
+  @@index([transferId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  entity    String
+  entityId  String?
+  actorId   String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([action, createdAt])
+}
+
+enum TransferStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  DEAD_LETTER
+}
+
+enum LedgerDirection {
+  DEBIT
+  CREDIT
+}
