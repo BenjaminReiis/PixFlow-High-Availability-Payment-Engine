@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Ledger — Simulador de Transferências</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #0B0E14;
+    --bg-1: #11151D;
+    --bg-2: #161B26;
+    --border: #232A38;
+    --border-strong: #313A4D;
+    --text-0: #E8EBF0;
+    --text-1: #9AA4B8;
+    --text-2: #6B7585;
+    --green: #3DDC84;
+    --green-dim: #1E7A48;
+    --red: #FF5D5D;
+    --red-dim: #8A2F2F;
+    --amber: #F5B947;
+    --blue: #5B9BFF;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg-0);
+    color: var(--text-0);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-1);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: #0B0E14;
+    font-size: 13px;
+  }
+
+  .brand-name {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-top: -2px;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--green);
+    padding: 5px 10px;
+    border: 1px solid var(--green-dim);
+    border-radius: 4px;
+    background: rgba(61, 220, 132, 0.06);
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 1.8s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .metric-card {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-2);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 6px;
+  }
+
+  .metric-value {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  .metric-value.green { color: var(--green); }
+  .metric-value.amber { color: var(--amber); }
+  .metric-value.red { color: var(--red); }
+
+  .metric-trend {
+    font-size: 11px;
+    color: var(--text-2);
+    margin-top: 4px;
+    font-family: var(--font-mono);
+  }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 360px;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--bg-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-1);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title .count {
+    font-family: var(--font-mono);
+    color: var(--text-2);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  .account-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: border-color 0.3s;
+  }
+
+  .account-row.flash {
+    border-color: var(--green);
+  }
+
+  .account-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg-0);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-1);
+  }
+
+  .account-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .account-id {
+    font-size: 10px;
+    color: var(--text-2);
+    font-family: var(--font-mono);
+  }
+
+  .account-balance {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.3s;
+  }
+
+  .account-balance.flash-up { color: var(--green); }
+  .account-balance.flash-down { color: var(--red); }
+
+  .form-block {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-2);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  select, input[type="number"] {
+    width: 100%;
+    background: var(--bg-0);
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+    color: var(--text-0);
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  select:focus, input:focus {
+    outline: none;
+    border-color: var(--green-dim);
+  }
+
+  .field-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .field-row select { margin-bottom: 0; }
+
+  .arrow-sep {
+    color: var(--text-2);
+    font-size: 14px;
+  }
+
+  button {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    padding: 10px 14px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-primary {
+    background: var(--green);
+    color: #06140C;
+    width: 100%;
+  }
+
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-1);
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  .btn-secondary:hover:not(:disabled) { background: var(--bg-2); }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-1);
+    margin-top: 10px;
+  }
+
+  .checkbox-row input { width: auto; margin: 0; }
+
+  .pipeline-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    margin-bottom: 6px;
+    opacity: 0.4;
+    transition: all 0.25s;
+  }
+
+  .pipeline-step .step-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+    color: var(--text-2);
+  }
+
+  .pipeline-step .step-label {
+    font-size: 12px;
+    color: var(--text-1);
+    flex: 1;
+  }
+
+  .pipeline-step .step-detail {
+    font-size: 10px;
+    color: var(--text-2);
+    font-family: var(--font-mono);
+  }
+
+  .pipeline-step.active {
+    opacity: 1;
+    border-color: var(--blue);
+    background: rgba(91, 155, 255, 0.06);
+  }
+  .pipeline-step.active .step-icon { border-color: var(--blue); color: var(--blue); }
+  .pipeline-step.active .step-label { color: var(--text-0); }
+
+  .pipeline-step.done {
+    opacity: 1;
+    border-color: var(--green-dim);
+    background: rgba(61, 220, 132, 0.05);
+  }
+  .pipeline-step.done .step-icon { border-color: var(--green); color: var(--green); background: var(--green); color: #06140C; }
+  .pipeline-step.done .step-label { color: var(--text-1); }
+
+  .pipeline-step.blocked {
+    opacity: 1;
+    border-color: var(--red-dim);
+    background: rgba(255, 93, 93, 0.06);
+  }
+  .pipeline-step.blocked .step-icon { border-color: var(--red); color: var(--red); }
+  .pipeline-step.blocked .step-label { color: var(--red); }
+
+  .empty-pipeline {
+    font-size: 12px;
+    color: var(--text-2);
+    text-align: center;
+    padding: 30px 10px;
+    font-family: var(--font-mono);
+  }
+
+  .ledger-wrap {
+    max-height: 280px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .ledger-wrap::-webkit-scrollbar { width: 6px; }
+  .ledger-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 70px 60px 1fr 90px 60px;
+    gap: 8px;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .ledger-row .lr-time { color: var(--text-2); }
+  .ledger-row .lr-type.DEBIT { color: var(--red); }
+  .ledger-row .lr-type.CREDIT { color: var(--green); }
+  .ledger-row .lr-type.DEDUPE { color: var(--amber); }
+  .ledger-row .lr-type.FAILED { color: var(--red); }
+  .ledger-row .lr-acc { color: var(--text-1); }
+  .ledger-row .lr-amt { text-align: right; color: var(--text-0); }
+  .ledger-row .lr-tx { color: var(--text-2); text-align: right; font-size: 10px; }
+
+  .chart-panel { grid-column: 1 / -1; }
+
+  .legend-row {
+    display: flex;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--text-1);
+    margin-bottom: 10px;
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch { width: 9px; height: 9px; border-radius: 2px; }
+
+  footer {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    padding-top: 10px;
+  }
+
+  @media (max-width: 1000px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">PL</div>
+    <div>
+      <div class="brand-name">payment-ledger</div>
+      <div class="brand-sub">simulador de transferências distribuídas</div>
+    </div>
+  </div>
+  <div class="status-pill"><span class="dot"></span> engine online</div>
+</div>
+
+<div class="layout">
+
+  <div class="metrics-row">
+    <div class="metric-card">
+      <p class="metric-label">Transferências/s</p>
+      <p class="metric-value green" id="m-tps">0.0</p>
+      <p class="metric-trend">janela de 5s</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Latência p50</p>
+      <p class="metric-value" id="m-p50">0ms</p>
+      <p class="metric-trend" id="m-p50-trend">—</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Total processado</p>
+      <p class="metric-value" id="m-total">0</p>
+      <p class="metric-trend">desde o boot</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Dedupe (idempotência)</p>
+      <p class="metric-value amber" id="m-dedupe">0</p>
+      <p class="metric-trend">requisições bloqueadas</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Falhas de negócio</p>
+      <p class="metric-value red" id="m-fail">0</p>
+      <p class="metric-trend">saldo insuficiente</p>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <div class="panel">
+      <div class="panel-title">Contas <span class="count" id="acc-count"></span></div>
+      <div id="accounts"></div>
+
+      <div class="form-block">
+        <label>Conta de origem</label>
+        <div class="field-row">
+          <select id="from-acc"></select>
+        </div>
+        <label style="margin-top: 10px;">Conta de destino</label>
+        <select id="to-acc"></select>
+        <label>Valor (R$)</label>
+        <input type="number" id="amount" value="50" min="1" />
+        <button class="btn-primary" id="btn-send">Transferir</button>
+        <button class="btn-secondary" id="btn-burst">Disparar carga (10x)</button>
+        <div class="checkbox-row">
+          <input type="checkbox" id="chk-retry" />
+          <label style="margin: 0; text-transform: none;">Simular retry (reenviar mesma Idempotency-Key)</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Pipeline da transferência</div>
+      <div id="pipeline"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Ledger imutável <span class="count">append-only</span></div>
+      <div class="ledger-wrap" id="ledger"></div>
+    </div>
+
+    <div class="panel chart-panel">
+      <div class="panel-title">Latência por transferência</div>
+      <div class="legend-row">
+        <div class="legend-item"><span class="legend-swatch" style="background: #3DDC84;"></span> latência (ms)</div>
+      </div>
+      <div style="position: relative; width: 100%; height: 220px;">
+        <canvas id="chart" role="img" aria-label="Gráfico de linha mostrando a latência em milissegundos de cada transferência processada ao longo do tempo">Latência das últimas transferências processadas, em milissegundos.</canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>payment-ledger simulator — dados gerados localmente no navegador, nenhuma chamada de rede é feita</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+(function() {
+  const state = {
+    accounts: [
+      { id: 'acc_alice', name: 'Alice Tanaka', balance: 1200.00 },
+      { id: 'acc_bruno', name: 'Bruno Costa', balance: 850.50 },
+      { id: 'acc_carla', name: 'Carla Mendes', balance: 2030.75 },
+      { id: 'acc_diego', name: 'Diego Alves', balance: 410.20 },
+      { id: 'acc_elen', name: 'Elen Silva', balance: 1675.00 }
+    ],
+    ledger: [],
+    idempotencyCache: new Map(),
+    lastKey: null,
+    totalProcessed: 0,
+    dedupeCount: 0,
+    failCount: 0,
+    latencies: [],
+    eventTimestamps: []
+  };
+
+  const accEl = document.getElementById('accounts');
+  const fromSel = document.getElementById('from-acc');
+  const toSel = document.getElementById('to-acc');
+  const amountInput = document.getElementById('amount');
+  const pipelineEl = document.getElementById('pipeline');
+  const ledgerEl = document.getElementById('ledger');
+  const retryChk = document.getElementById('chk-retry');
+  const sendBtn = document.getElementById('btn-send');
+  const burstBtn = document.getElementById('btn-burst');
+
+  function fmt(n) {
+    return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function initials(name) {
+    return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  function renderAccounts() {
+    document.getElementById('acc-count').textContent = state.accounts.length + ' contas';
+    accEl.innerHTML = state.accounts.map(a => `
+      <div class="account-row" id="row-${a.id}">
+        <div class="account-info">
+          <div class="avatar">${initials(a.name)}</div>
+          <div>
+            <div class="account-name">${a.name}</div>
+            <div class="account-id">${a.id}</div>
+          </div>
+        </div>
+        <div class="account-balance" id="bal-${a.id}">R$ ${fmt(a.balance)}</div>
+      </div>
+    `).join('');
+  }
+
+  function renderSelects() {
+    const opts = state.accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+    fromSel.innerHTML = opts;
+    toSel.innerHTML = opts;
+    toSel.selectedIndex = 1;
+  }
+
+  function flashBalance(id, direction) {
+    const balEl = document.getElementById('bal-' + id);
+    const rowEl = document.getElementById('row-' + id);
+    if (!balEl) return;
+    balEl.classList.add(direction === 'up' ? 'flash-up' : 'flash-down');
+    rowEl.classList.add('flash');
+    setTimeout(() => {
+      balEl.classList.remove('flash-up', 'flash-down');
+      rowEl.classList.remove('flash');
+    }, 700);
+  }
+
+  const PIPE_STEPS = [
+    { key: 'idem', label: 'Validar Idempotency-Key', icon: '1' },
+    { key: 'lock', label: 'Lock distribuído (ordem determinística)', icon: '2' },
+    { key: 'check', label: 'Validar saldo e regras de negócio', icon: '3' },
+    { key: 'debit', label: 'Débito — conta origem', icon: '4' },
+    { key: 'credit', label: 'Crédito — conta destino', icon: '5' },
+    { key: 'commit', label: 'Commit da transação + liberar lock', icon: '6' }
+  ];
+
+  function renderPipelineIdle() {
+    pipelineEl.innerHTML = PIPE_STEPS.map(s => `
+      <div class="pipeline-step" id="step-${s.key}">
+        <div class="step-icon">${s.icon}</div>
+        <div class="step-label">${s.label}</div>
+        <div class="step-detail" id="detail-${s.key}"></div>
+      </div>
+    `).join('');
+  }
+
+  function setStep(key, status, detail) {
+    const el = document.getElementById('step-' + key);
+    if (!el) return;
+    el.classList.remove('active', 'done', 'blocked');
+    el.classList.add(status);
+    if (status === 'done') el.querySelector('.step-icon').textContent = '✓';
+    if (status === 'blocked') el.querySelector('.step-icon').textContent = '✕';
+    if (detail) document.getElementById('detail-' + key).textContent = detail;
+  }
+
+  function pushLedger(entry) {
+    state.ledger.unshift(entry);
+    if (state.ledger.length > 60) state.ledger.pop();
+    ledgerEl.innerHTML = state.ledger.map(e => `
+      <div class="ledger-row">
+        <span class="lr-time">${e.time}</span>
+        <span class="lr-type ${e.type}">${e.type}</span>
+        <span class="lr-acc">${e.account}</span>
+        <span class="lr-amt">${e.amount}</span>
+        <span class="lr-tx">${e.txId}</span>
+      </div>
+    `).join('');
+  }
+
+  let chart;
+  function initChart() {
+    const ctx = document.getElementById('chart');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Latência (ms)',
+          data: [],
+          borderColor: '#3DDC84',
+          backgroundColor: 'rgba(61,220,132,0.08)',
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#3DDC84',
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#6B7585', maxRotation: 0, autoSkip: true, font: { family: 'JetBrains Mono', size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#6B7585', font: { family: 'JetBrains Mono', size: 10 } }, grid: { color: '#232A38' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  function updateChart(label, latency) {
+    chart.data.labels.push(label);
+    chart.data.datasets[0].data.push(Math.round(latency));
+    if (chart.data.labels.length > 30) {
+      chart.data.labels.shift();
+      chart.data.datasets[0].data.shift();
+    }
+    chart.update();
+  }
+
+  function updateMetrics() {
+    document.getElementById('m-total').textContent = state.totalProcessed;
+    document.getElementById('m-dedupe').textContent = state.dedupeCount;
+    document.getElementById('m-fail').textContent = state.failCount;
+
+    if (state.latencies.length) {
+      const sorted = [...state.latencies].sort((a, b) => a - b);
+      const p50 = sorted[Math.floor(sorted.length / 2)];
+      document.getElementById('m-p50').textContent = Math.round(p50) + 'ms';
+      document.getElementById('m-p50-trend').textContent = 'min ' + Math.round(sorted[0]) + 'ms / max ' + Math.round(sorted[sorted.length - 1]) + 'ms';
+    }
+
+    const now = Date.now();
+    state.eventTimestamps = state.eventTimestamps.filter(t => now - t < 5000);
+    document.getElementById('m-tps').textContent = (state.eventTimestamps.length / 5).toFixed(1);
+  }
+
+  setInterval(updateMetrics, 1000);
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  let busy = false;
+  async function processTransfer(fromId, toId, amount, idemKey) {
+    if (busy) return;
+    busy = true;
+    sendBtn.disabled = true;
+    burstBtn.disabled = true;
+
+    if (idemKey && state.idempotencyCache.has(idemKey)) {
+      renderPipelineIdle();
+      setStep('idem', 'blocked', 'chave já processada');
+      await sleep(450);
+      state.dedupeCount++;
+      updateMetrics();
+      pushLedger({ time: new Date().toLocaleTimeString('pt-BR'), type: 'DEDUPE', account: '—', amount: 'requisição duplicada', txId: idemKey.slice(0, 10) });
+      busy = false;
+      sendBtn.disabled = false;
+      burstBtn.disabled = false;
+      return;
+    }
+
+    const start = performance.now();
+    const from = state.accounts.find(a => a.id === fromId);
+    const to = state.accounts.find(a => a.id === toId);
+    const txId = 'tx_' + Math.random().toString(36).slice(2, 8);
+
+    renderPipelineIdle();
+    await sleep(120);
+    setStep('idem', 'active'); await sleep(160); setStep('idem', 'done', 'chave nova');
+    setStep('lock', 'active'); await sleep(200); setStep('lock', 'done', 'ordem: ' + [from.id, to.id].sort().join(' < '));
+    setStep('check', 'active'); await sleep(170);
+
+    if (from.balance < amount) {
+      setStep('check', 'blocked', 'saldo insuficiente');
+      await sleep(400);
+      state.failCount++;
+      updateMetrics();
+      pushLedger({ time: new Date().toLocaleTimeString('pt-BR'), type: 'FAILED', account: from.name, amount: 'saldo insuficiente', txId });
+      busy = false;
+      sendBtn.disabled = false;
+      burstBtn.disabled = false;
+      return;
+    }
+    setStep('check', 'done', 'ok');
+
+    setStep('debit', 'active'); await sleep(190);
+    from.balance -= amount;
+    flashBalance(from.id, 'down');
+    setStep('debit', 'done', '-R$ ' + fmt(amount));
+
+    setStep('credit', 'active'); await sleep(190);
+    to.balance += amount;
+    flashBalance(to.id, 'up');
+    setStep('credit', 'done', '+R$ ' + fmt(amount));
+
+    setStep('commit', 'active'); await sleep(160); setStep('commit', 'done', '201 Created');
+
+    const time = new Date().toLocaleTimeString('pt-BR');
+    pushLedger({ time, type: 'DEBIT', account: from.name, amount: '-R$ ' + fmt(amount), txId });
+    pushLedger({ time, type: 'CREDIT', account: to.name, amount: '+R$ ' + fmt(amount), txId });
+
+    renderAccounts();
+
+    const latency = performance.now() - start;
+    state.latencies.push(latency);
+    state.totalProcessed++;
+    state.eventTimestamps.push(Date.now());
+    updateChart(time, latency);
+    updateMetrics();
+
+    if (idemKey) state.idempotencyCache.set(idemKey, true);
+
+    busy = false;
+    sendBtn.disabled = false;
+    burstBtn.disabled = false;
+  }
+
+  sendBtn.addEventListener('click', () => {
+    const fromId = fromSel.value;
+    const toId = toSel.value;
+    const amount = Math.max(1, Number(amountInput.value) || 0);
+    if (fromId === toId) return;
+
+    let key;
+    if (retryChk.checked && state.lastKey) {
+      key = state.lastKey;
+    } else {
+      key = 'idem_' + Math.random().toString(36).slice(2, 10);
+      state.lastKey = key;
+    }
+    processTransfer(fromId, toId, amount, key);
+  });
+
+  burstBtn.addEventListener('click', async () => {
+    for (let i = 0; i < 10; i++) {
+      const shuffled = [...state.accounts].sort(() => Math.random() - 0.5);
+      const amount = Math.floor(Math.random() * 80) + 10;
+      await processTransfer(shuffled[0].id, shuffled[1].id, amount, 'idem_burst_' + i + '_' + Math.random().toString(36).slice(2, 6));
+      await sleep(80);
+    }
+  });
+
+  renderAccounts();
+  renderSelects();
+  renderPipelineIdle();
+  initChart();
+  updateMetrics();
+})();
+</script>
+</body>
+</html>
