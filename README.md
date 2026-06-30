@@ -1,129 +1,388 @@
-# ⚡ Payment Ledger — PIX-like Transfer System
+# ⚡ Payment Ledger — PIX-like Distributed Payment System
 
-https://benjaminreiis.github.io/PixFlow-Distributed-Payment-System/
+<p align="center">
 
-Backend project focused on distributed systems, financial consistency and concurrent transaction processing.
+<img src="https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=node.js&logoColor=white"/>
+<img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white"/>
+<img src="https://img.shields.io/badge/Fastify-Framework-000000?style=for-the-badge&logo=fastify"/>
+<img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql&logoColor=white"/>
+<img src="https://img.shields.io/badge/Redis-Cache-DC382D?style=for-the-badge&logo=redis&logoColor=white"/>
+<img src="https://img.shields.io/badge/Docker-Container-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+<img src="https://img.shields.io/badge/JWT-Authentication-000000?style=for-the-badge&logo=jsonwebtokens"/>
+<img src="https://img.shields.io/badge/License-MIT-success?style=for-the-badge"/>
 
-Built to simulate real-world banking transfer architectures using modern backend engineering practices.
+</p>
 
 ---
 
-## 🚀 Stack
+## 🚀 Overview
 
-* Node.js + TypeScript + Fastify
-* PostgreSQL + Prisma
+**Payment Ledger** é um sistema de transferências financeiras inspirado no **PIX**, desenvolvido para simular arquiteturas bancárias modernas com foco em **consistência financeira**, **alta concorrência**, **sistemas distribuídos** e **processamento seguro de transações**.
+
+O projeto implementa diversos padrões utilizados por bancos e fintechs para garantir que cada transferência seja processada de forma confiável, auditável e resiliente.
+
+---
+
+# 🌐 Live Demo
+
+🔗 **Projeto**
+
+> https://benjaminreiis.github.io/PixFlow-Distributed-Payment-System/
+
+---
+
+# ✨ Principais Recursos
+
+## 💳 Sistema Financeiro
+
+* Transferências entre contas
+* Ledger financeiro
+* Histórico imutável de transações
+* Controle de saldo
+* Consistência financeira
+* Operações ACID
+
+---
+
+## 🔐 Segurança
+
+* Autenticação JWT
+* Rotas protegidas
+* Validação de usuários
+* Hash de senhas
+* Middleware de autenticação
+
+---
+
+## ⚡ Controle de Concorrência
+
+* Pessimistic Locking (`FOR UPDATE`)
+* Distributed Locks utilizando Redis
+* Prevenção de Race Conditions
+* Ordenação determinística de locks
+* Garantia de integridade dos dados
+
+---
+
+## 🔄 Idempotência
+
+* Header `Idempotency-Key`
+* Bloqueio de pagamentos duplicados
+* Cache Redis
+* Requisições seguras
+* Reprocessamento controlado
+
+---
+
+## 📦 Processamento Assíncrono
+
+* Background Workers
+* Queue Processing
+* Retry automático
+* Exponential Backoff
+* Dead Letter Queue (DLQ)
+
+---
+
+## 📊 Observabilidade
+
+* Logs estruturados
+* Auditoria completa
+* Rastreamento de transações
+* Metadados
+* Monitoramento
+
+---
+
+# 🏗 Arquitetura
+
+```text
+payment-ledger
+│
+├── prisma/
+├── scripts/
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── middlewares/
+│   ├── modules/
+│   ├── queues/
+│   ├── repositories/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   └── workers/
+│
+├── test/
+├── Dockerfile
+├── docker-compose.yml
+├── package.json
+└── README.md
+```
+
+---
+
+# 🛠 Stack Tecnológica
+
+## Backend
+
+* Node.js
+* TypeScript
+* Fastify
+
+## Banco de Dados
+
+* PostgreSQL
+* Prisma ORM
+
+## Cache
+
 * Redis
-* Docker + Docker Compose
+
+## Segurança
+
 * JWT Authentication
+* Bcrypt
+
+## DevOps
+
+* Docker
+* Docker Compose
+
+## Logging
+
 * Pino Logger
 
 ---
 
-## 🔥 Features
+# ⚙ Fluxo de Transferência
 
-### Financial Consistency
+```text
+Cliente
 
-* ACID transactions
-* Ledger-based balance updates
-* Pessimistic locking (`FOR UPDATE`)
-* Immutable transaction history
+      │
 
-### Idempotency
+      ▼
 
-* `Idempotency-Key` support
-* Duplicate prevention
-* Redis-based validation
+Autenticação JWT
 
-### Async Processing
+      │
 
-* Queue-based transfers
-* Background workers
-* Retry with backoff
-* Dead Letter Queue (DLQ)
+      ▼
 
-### Concurrency Protection
+Validação da Requisição
 
-* Distributed Redis locks
-* Race condition prevention
-* Deterministic lock ordering
+      │
 
-### Audit & Logs
+      ▼
 
-* Structured logs
-* Audit trail
-* Transaction metadata
+Idempotency Check (Redis)
 
----
+      │
 
-## 🏗️ Architecture
+      ▼
 
-```bash id="rvjlwm"
-payment-ledger/
-├── src/
-├── prisma/
-├── test/
-├── scripts/
-├── Dockerfile
-└── docker-compose.yml
+Distributed Lock
+
+      │
+
+      ▼
+
+Transação ACID
+
+      │
+
+      ▼
+
+Atualização do Ledger
+
+      │
+
+      ▼
+
+Persistência PostgreSQL
+
+      │
+
+      ▼
+
+Registro de Auditoria
+
+      │
+
+      ▼
+
+Resposta da API
 ```
 
 ---
 
-## ▶️ Running Locally
+# 🚀 Como Executar
 
-### Start infrastructure
+## 1️⃣ Clonar o projeto
 
-```bash id="b97m1v"
-docker compose up -d
+```bash
+git clone https://github.com/seu-usuario/payment-ledger.git
 ```
 
-### Install dependencies
+---
 
-```bash id="v6jqlx"
+## 2️⃣ Entrar na pasta
+
+```bash
+cd payment-ledger
+```
+
+---
+
+## 3️⃣ Instalar dependências
+
+```bash
 npm install
 ```
 
-### Run migrations
+---
 
-```bash id="4q8z7o"
+## 4️⃣ Subir containers
+
+```bash
+docker compose up -d
+```
+
+---
+
+## 5️⃣ Executar migrations
+
+```bash
 npx prisma migrate dev
 ```
 
-### Start application
+---
 
-```bash id="80p7l4"
+## 6️⃣ Iniciar aplicação
+
+```bash
 npm run dev
 ```
 
 ---
 
-## 🌐 Main Endpoints
+# 📡 Endpoints
 
-```http id="s95lk9"
+## Autenticação
+
+```http
 POST /auth/login
-POST /transfers
-GET  /accounts/:id
-GET  /transfers/history
 ```
 
 ---
 
-## 🧠 Engineering Concepts
+## Transferências
 
-* Distributed Systems
-* Transaction Processing
-* Idempotency
-* Distributed Locks
-* Async Queues
-* Retry Pattern
-* Fault Tolerance
-* Financial Consistency
-* Concurrency Control
+```http
+POST /transfers
+```
 
 ---
 
-## 👨‍💻 Author
+## Contas
 
-Benjamin Dos Reis
+```http
+GET /accounts/:id
+```
 
-Backend Engineer focused on scalable systems, APIs and distributed architectures.
+---
+
+## Histórico
+
+```http
+GET /transfers/history
+```
+
+---
+
+# 🧠 Conceitos de Engenharia
+
+Este projeto aplica diversos conceitos encontrados em sistemas financeiros reais.
+
+* Distributed Systems
+* Financial Consistency
+* ACID Transactions
+* Ledger Architecture
+* CQRS Concepts
+* Idempotency
+* Distributed Locks
+* Pessimistic Locking
+* Concurrency Control
+* Retry Pattern
+* Dead Letter Queue
+* Background Workers
+* Fault Tolerance
+* Event Processing
+* Secure Authentication
+* Audit Trail
+* Structured Logging
+* High Performance APIs
+
+---
+
+# 📈 Objetivos do Projeto
+
+Este projeto foi desenvolvido para estudar e demonstrar conhecimentos em:
+
+* Arquiteturas Distribuídas
+* Engenharia Backend
+* Sistemas Financeiros
+* APIs Escaláveis
+* Controle de Concorrência
+* Microsserviços
+* Engenharia de Software
+* Boas práticas de desenvolvimento
+
+---
+
+# 📷 Preview
+
+> Interface disponível em:
+
+**https://benjaminreiis.github.io/PixFlow-Distributed-Payment-System/**
+
+---
+
+# 👨‍💻 Autor
+
+## Benjamin Dos Reis
+
+**Backend Engineer**
+
+Especializado em:
+
+* Sistemas Financeiros
+* APIs REST
+* Node.js
+* Java
+* Spring Boot
+* Microsserviços
+* Sistemas Distribuídos
+* Cloud Computing
+* PostgreSQL
+* Docker
+* Redis
+
+---
+
+# 📄 Licença
+
+Distribuído sob a licença **MIT**.
+
+Sinta-se livre para utilizar, estudar e contribuir com este projeto.
+
+---
+
+<div align="center">
+
+### ⭐ Se este projeto foi útil, deixe uma estrela no repositório!
+
+**Obrigado pela visita! 🚀**
+
+</div>
