@@ -1,6 +1,6 @@
 <div align="center">
 
-# ⚡ Instant Payments Engine
+# ⚡PixFlow — High-Availability Payment Engine
 
 **An instant payments engine with idempotency, reconciliation, and reliable processing.**
 
